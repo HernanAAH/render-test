@@ -43,6 +43,21 @@ app.get('/api/notes/:id', (request, response) => {
   }
 })
 
+app.put('/api/notes/:id', (request, response) => {
+  const id = Number(request.params.id);
+  const body = request.body;
+
+  const note = notes.find(n => n.id === id);
+  if (!note) {
+    return response.status(404).json({ error: 'nota no encontrada' });
+  }
+
+  const updatedNote = { ...note, ...body };
+  notes = notes.map(n => n.id !== id ? n : updatedNote);
+
+  response.json(updatedNote);
+});
+
 app.post('/api/notes', (request, response) => {
   const maxId = notes.length > 0
     ? Math.max(...notes.map(n => n.id)) 
