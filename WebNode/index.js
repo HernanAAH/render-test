@@ -1,26 +1,11 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
-const mongoose = require('mongoose')
+const Note = require('./models/note')
 
 app.use(express.json())
 app.use(express.static('dist'))
 app.use(cors())
-
-const password = process.env.mongodb_password
-
-const url =
-  `mongodb+srv://hernana860:${password}@cluster0.op29mzv.mongodb.net/noteApp?retryWrites=true&w=majority&appName=Cluster0`
-
-mongoose.set('strictQuery',false)
-mongoose.connect(url)
-
-const noteSchema = new mongoose.Schema({
-  content: String,
-  important: Boolean,
-})
-
-const Note = mongoose.model('Note', noteSchema)
 
 let notes = [
   {
@@ -40,10 +25,6 @@ let notes = [
   }
 ]
 
-app.get('/', (request, response) => {
-  response.send('<h1>Hello World!</h1>')
-})
-
 app.get('/api/notes', (request, response) => {
   Note.find({}).then(notes => {
     response.json(notes)
@@ -51,14 +32,9 @@ app.get('/api/notes', (request, response) => {
 })
 
 app.get('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const note = notes.find(note => note.id === id)
-  
-  if (note) {
+  Note.findById(request.params.id).then(note => {
     response.json(note)
-  } else {
-    response.status(404).end()
-  }
+  })
 })
 
 app.put('/api/notes/:id', (request, response) => {
@@ -77,16 +53,20 @@ app.put('/api/notes/:id', (request, response) => {
 });
 
 app.post('/api/notes', (request, response) => {
-  const maxId = notes.length > 0
-    ? Math.max(...notes.map(n => n.id)) 
-    : 0
+  const body = request.body
 
-  const note = request.body
-  note.id = maxId + 1
+  if (body.content === undefined) {
+    return response.status(400).json({ error: 'content missing' })
+  }
 
-  notes = notes.concat(note)
+  const note = new Note({
+    content: body.content,
+    important: body.important || false,
+  })
 
-  response.json(note)
+  note.save().then(savedNote => {
+    response.json(savedNote)
+  })
 })
 
 app.delete('/api/notes/:id', (request, response) => {
