@@ -82,7 +82,7 @@ app.delete('/api/notes/:id', (request, response) => {
 
 const mongoose = require('mongoose')
 
-const password = process.argv[2]
+const password = process.env.mongodb_password
 
 const url =
   `mongodb+srv://hernana860:${password}@cluster0.op29mzv.mongodb.net/noteApp?retryWrites=true&w=majority&appName=Cluster0`
