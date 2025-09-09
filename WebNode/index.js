@@ -29,7 +29,9 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/notes', (request, response) => {
-  response.json(notes)
+  Note.find({}).then(notes => {
+    response.json(notes)
+  })
 })
 
 app.get('/api/notes/:id', (request, response) => {
@@ -77,6 +79,23 @@ app.delete('/api/notes/:id', (request, response) => {
 
   response.status(204).end()
 })
+
+const mongoose = require('mongoose')
+
+const password = process.argv[2]
+
+const url =
+  `mongodb+srv://fullstack:${password}@cluster0.o1opl.mongodb.net/?retryWrites=true&w=majority`
+
+mongoose.set('strictQuery',false)
+mongoose.connect(url)
+
+const noteSchema = new mongoose.Schema({
+  content: String,
+  important: Boolean,
+})
+
+const Note = mongoose.model('Note', noteSchema)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
